@@ -232,6 +232,12 @@ public:
     glUniform1i(location, a);
   }
 
+  void setUniform(const std::string & name, bool a) {
+    configuredUniforms.insert(name);
+    GLint location = getUniformLocation(name);
+    glUniform1i(location, a ? 1 : 0);
+  }
+
   void setUniform(const std::string & name, const glm::vec2 & a) {
     configuredUniforms.insert(name);
     GLint location = getUniformLocation(name);
@@ -305,7 +311,7 @@ public:
           existingUniforms.erase(element);
         });
 
-    assert(existingUniforms.size() == 0);
+//    assert(existingUniforms.size() == 0);
   }
 
   void use() {

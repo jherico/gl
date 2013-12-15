@@ -97,6 +97,10 @@ inline void viewport( const glm::ivec2 & pos, const glm::ivec2 & size ) {
   glViewport(pos.x, pos.y, size.x, size.y);
 }
 
+inline void viewport( const glm::ivec2 & size ) {
+  viewport(glm::ivec2(), size);
+}
+
 }
 
 namespace glm {

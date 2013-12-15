@@ -38,6 +38,12 @@ struct FrameBuffer {
   GLuint depthBuffer;
   GLsizei width, height;
 
+  FrameBuffer(TexturePtr color, TexturePtr depth = TexturePtr())
+      : frameBuffer(0), multisample(multisample), texture(color), depth(depth),
+        depthBuffer(0), width(0), height(
+          0) {
+  }
+
   FrameBuffer(bool multisample = false)
       : frameBuffer(0), multisample(multisample), texture(nullptr), depthBuffer(0), width(0), height(
           0) {
@@ -71,42 +77,51 @@ struct FrameBuffer {
 
     numSamples = std::min(8, numSamples);
 
-    texture = TexturePtr(new Texture());
+    if (!texture) {
+      texture = TexturePtr(new Texture());
+      if (multisample) {
+        texture->bind(GL_TEXTURE_2D_MULTISAMPLE);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, numSamples, GL_RGBA8, width, height, false);
+      } else {
+        texture->bind(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+      }
+    }
+
     if (multisample) {
-      texture->bind(GL_TEXTURE_2D_MULTISAMPLE);
-      glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, numSamples, GL_RGBA8, width, height, false);
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, *texture, 0);
       Texture::unbind(GL_TEXTURE_2D_MULTISAMPLE);
     } else {
-      texture->bind(GL_TEXTURE_2D);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, 0);
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *texture, 0);
       Texture::unbind(GL_TEXTURE_2D);
     }
+
     GL_CHECK_ERROR;
     GLenum bufs = GL_COLOR_ATTACHMENT0;
     glDrawBuffers(1, &bufs);
     GL_CHECK_ERROR;
 
-    depth = TexturePtr(new Texture());
-    if (multisample) {
-      depth->bind(GL_TEXTURE_2D_MULTISAMPLE);
-      glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, numSamples, GL_DEPTH_COMPONENT16, width, height, false);
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, *depth, 0);
-      Texture::unbind(GL_TEXTURE_2D_MULTISAMPLE);
-    } else {
-      depth->bind(GL_TEXTURE_2D);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *depth, 0);
-      Texture::unbind(GL_TEXTURE_2D);
+    if (!depth) {
+      depth = TexturePtr(new Texture());
+      if (multisample) {
+        depth->bind(GL_TEXTURE_2D_MULTISAMPLE);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, numSamples, GL_DEPTH_COMPONENT16, width, height, false);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, *depth, 0);
+        Texture::unbind(GL_TEXTURE_2D_MULTISAMPLE);
+      } else {
+        depth->bind(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *depth, 0);
+        Texture::unbind(GL_TEXTURE_2D);
+      }
     }
     if (!checkStatus(GL_FRAMEBUFFER)) {
       throw std::runtime_error("Bad framebuffer creation");
