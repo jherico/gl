@@ -28,25 +28,20 @@
 
 namespace gl {
 
-
+  template <
+    class TextureType = Texture2d,
+    class DepthType = Texture<GL_TEXTURE_2D, GL_DEPTH_COMPONENT16>
+  >
 struct FrameBuffer {
+  typedef std::shared_ptr<TextureType> TexturePtr;
+  typedef std::shared_ptr<DepthType> DepthPtr;
   GLuint frameBuffer;
-  bool multisample;
   TexturePtr texture;
-  TexturePtr depth;
-  //GLuint texture;
-  GLuint depthBuffer;
-  GLsizei width, height;
+  DepthPtr depth;
+  glm::ivec2 size;
 
-  FrameBuffer(TexturePtr color, TexturePtr depth = TexturePtr())
-      : frameBuffer(0), multisample(multisample), texture(color), depth(depth),
-        depthBuffer(0), width(0), height(
-          0) {
-  }
-
-  FrameBuffer(bool multisample = false)
-      : frameBuffer(0), multisample(multisample), texture(nullptr), depthBuffer(0), width(0), height(
-          0) {
+  FrameBuffer(TexturePtr color = TexturePtr(), DepthPtr depth = DepthPtr())
+      : frameBuffer(0), texture(color), depth(depth) {
   }
 
   virtual ~FrameBuffer() {
@@ -54,51 +49,27 @@ struct FrameBuffer {
       glDeleteFramebuffers(1, &frameBuffer);
       GL_CHECK_ERROR;
     }
-
-    if (depthBuffer) {
-      glDeleteRenderbuffers(1, &depthBuffer);
-      GL_CHECK_ERROR;
-    }
   }
 
-  void init(const glm::ivec2 & size, bool multisample_ = false) {
-    this->width = size.x;
-    this->height = size.y;
-    this->multisample = multisample_;
-
+  void init(const glm::ivec2 & size) {
+    this->size = size;
     glGenFramebuffers(1, &frameBuffer);
-    bind();
-    glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH, width);
-    glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_HEIGHT, height);
     GL_CHECK_ERROR;
 
-    GLint numSamples = 0;
-    glGetIntegerv(GL_MAX_SAMPLES_EXT, &numSamples);
-
-    numSamples = std::min(8, numSamples);
+    bind();
+    GL_CHECK_ERROR;
 
     if (!texture) {
-      texture = TexturePtr(new Texture());
-      if (multisample) {
-        texture->bind(GL_TEXTURE_2D_MULTISAMPLE);
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, numSamples, GL_RGBA8, width, height, false);
-      } else {
-        texture->bind(GL_TEXTURE_2D);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, 0);
-      }
+      texture = TexturePtr(new TextureType());
+      texture->bind();
+      texture->parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      texture->parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      texture->parameter(GL_TEXTURE_WRAP_S, GL_CLAMP);
+      texture->parameter(GL_TEXTURE_WRAP_T, GL_CLAMP);
+      texture->image2d(size);
+      TextureType::unbind();
     }
-
-    if (multisample) {
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, *texture, 0);
-      Texture::unbind(GL_TEXTURE_2D_MULTISAMPLE);
-    } else {
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *texture, 0);
-      Texture::unbind(GL_TEXTURE_2D);
-    }
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *texture, 0);
 
     GL_CHECK_ERROR;
     GLenum bufs = GL_COLOR_ATTACHMENT0;
@@ -106,23 +77,17 @@ struct FrameBuffer {
     GL_CHECK_ERROR;
 
     if (!depth) {
-      depth = TexturePtr(new Texture());
-      if (multisample) {
-        depth->bind(GL_TEXTURE_2D_MULTISAMPLE);
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, numSamples, GL_DEPTH_COMPONENT16, width, height, false);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, *depth, 0);
-        Texture::unbind(GL_TEXTURE_2D_MULTISAMPLE);
-      } else {
-        depth->bind(GL_TEXTURE_2D);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *depth, 0);
-        Texture::unbind(GL_TEXTURE_2D);
-      }
+      depth = DepthPtr(new DepthType());
+      depth->bind();
+      depth->parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+      depth->parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+      depth->parameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      depth->parameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      depth->image2d(size);
+      DepthType::unbind();
     }
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *depth, 0);
+
     if (!checkStatus(GL_FRAMEBUFFER)) {
       throw std::runtime_error("Bad framebuffer creation");
     }
@@ -150,7 +115,7 @@ struct FrameBuffer {
 //    glBindTexture(GL_TEXTURE_2D, 0);
 //    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-    glViewport(0, 0, width, height);
+    viewport(size);
   }
   void deactivate() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -29,32 +29,29 @@
 
 namespace gl {
 
-class GlBufferLoader {
+class BufferLoader {
 public:
-  virtual ~GlBufferLoader() {
+  virtual ~BufferLoader() {
   }
-  virtual const GLvoid* getData() = 0;
-  virtual GLsizeiptr getSize() = 0;
+  virtual const GLvoid* getData() const  = 0;
+  virtual GLsizeiptr getSize() const = 0;
 };
 
-template<class T> class VectorLoader : public GlBufferLoader {
+template<class T> class VectorLoader: public BufferLoader {
 public:
-  const std::vector<T> & data;
-  VectorLoader(const std::vector<T> & data)
-      : data(data) {
+  typedef std::vector<T> V;
+  const V & data;
+  VectorLoader(const V & data) :
+      data(data) {
   }
 
-  const GLvoid* getData() {
+  const GLvoid* getData() const {
     const T * ptr = &(this->data[0]);
     return ptr;
   }
 
-  GLsizeiptr getSize() {
+  GLsizeiptr getSize() const {
     return sizeof(T) * data.size();
-  }
-
-  operator GlBufferLoader &() {
-    return *this;
   }
 
 };
@@ -64,19 +61,19 @@ template<typename T> VectorLoader<T> makeVectorLoader(
   return VectorLoader<T>(vector);
 }
 
-template<typename T, size_t SIZE> class ArrayLoader : public GlBufferLoader {
+template<typename T, size_t SIZE> class ArrayLoader: public BufferLoader {
 public:
   const T * data;
 
-  ArrayLoader(T * data)
-      : data(data) {
+  ArrayLoader(const T * data) :
+      data(data) {
   }
 
-  const GLvoid* getData() {
-    return (GLvoid*) data;
+  const GLvoid* getData() const {
+    return (const GLvoid*)data;
   }
 
-  GLsizeiptr getSize() {
+  GLsizeiptr getSize() const {
     return sizeof(T) * SIZE;
   }
 };
@@ -87,73 +84,76 @@ template<typename T, size_t SIZE> ArrayLoader<T, SIZE> makeArrayLoader(
 }
 
 template<typename T, size_t SIZE> ArrayLoader<T, SIZE> makeArrayLoader(
-    T (&array)[SIZE]) {
+  T(&array)[SIZE]) {
   return ArrayLoader<T, SIZE>(array);
 }
 
-template<
-    GLenum GlBufferType,
-    GLenum GlUsageType = GL_STATIC_DRAW
->
-class GlBuffer {
+template<GLenum BufferType, GLenum UsageType = GL_STATIC_DRAW>
+class Buffer {
   GLuint buffer;
-  public:
-  GlBuffer()
-      : buffer(0) {
+
+public:
+
+  Buffer() :
+      buffer(0) {
     glGenBuffers(1, &buffer);
     assert(buffer != 0);
   }
 
-  template<typename T> GlBuffer(std::vector<T> & data)
-      : buffer(0) {
-    glGenBuffers(1, &buffer);
-    assert(buffer != 0);
-    *this << gl::VectorLoader<T>(data);
-  }
-
-  template<typename T, size_t SIZE> GlBuffer(T (&array)[SIZE])
-      : buffer(0) {
-    glGenBuffers(1, &buffer);
-    assert(buffer != 0);
-    *this << gl::ArrayLoader<T, SIZE>(array);
-  }
-
-  GlBuffer(GlBuffer && other)
-      : buffer(0) {
+  Buffer(Buffer && other) :
+      buffer(0) {
     std::swap(other.buffer, buffer);
   }
 
-  virtual ~GlBuffer() {
+  template<typename T>
+  Buffer::Buffer(std::vector<T> & data) :
+      buffer(0) {
+    glGenBuffers(1, &buffer);
+    *this << gl::VectorLoader < T >(data);
+  }
+
+  template<typename T, size_t SIZE>
+  Buffer(T (&array)[SIZE]) :
+      buffer(0) {
+    glGenBuffers(1, &buffer);
+    *this << gl::ArrayLoader<T, SIZE>(array);
+  }
+
+  template<typename T> Buffer(const std::vector<T> & data);
+  template<typename T, size_t SIZE> Buffer(const T (&array)[SIZE]);
+
+  virtual ~Buffer() {
     glDeleteBuffers(1, &buffer);
   }
 
-  void bind() const {
-    glBindBuffer(GlBufferType, buffer);
+  void load(size_t size, const void * data, GLenum usage = UsageType, GLenum target =
+      BufferType) {
+    glBufferData(target, size, data, usage);
   }
 
-  static void unbind() {
-    glBindBuffer(GlBufferType, 0);
+  void bind(GLenum target = BufferType) const {
+    glBindBuffer(target, buffer);
   }
 
-  void operator <<(GlBufferLoader & loader) {
-    load(loader);
+  static void unbind(GLenum target = BufferType) {
+    glBindBuffer(target, 0);
   }
 
-  void operator <<(GlBufferLoader && loader) {
-    load(loader);
+  Buffer & operator <<(const BufferLoader & loader) {
+    load(loader.getSize(), loader.getData());
+    return *this;
   }
 
-  void load(GlBufferLoader & loader) {
-    bind();
-    glBufferData(GlBufferType, loader.getSize(), loader.getData(),
-        GlUsageType);
+  Buffer & operator <<(BufferLoader && loader) {
+    load(loader.getSize(), loader.getData());
+    return *this;
   }
 };
 
-typedef GlBuffer<GL_ELEMENT_ARRAY_BUFFER> IndexBuffer;
+typedef Buffer<GL_ELEMENT_ARRAY_BUFFER> IndexBuffer;
 typedef std::shared_ptr<IndexBuffer> IndexBufferPtr;
 
-typedef GlBuffer<GL_ARRAY_BUFFER> VertexBuffer;
+typedef Buffer<GL_ARRAY_BUFFER> VertexBuffer;
 typedef std::shared_ptr<VertexBuffer> VertexBufferPtr;
 
 } // gl

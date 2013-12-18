@@ -198,7 +198,8 @@ public:
     GLint linked;
     glGetProgramiv(program, GL_LINK_STATUS, &linked);
     if (!linked) {
-      throw std::runtime_error(getLog(program));
+      std::string log = getLog(program);
+      throw std::runtime_error(log);
     }
 
     int numVars;
