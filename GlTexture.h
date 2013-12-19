@@ -48,7 +48,7 @@ enum Enum {
 
 template <
 GLenum TextureType = GL_TEXTURE_2D,
-GLint InternalFormat = GL_RGBA8
+GLenum TextureFormat = GL_RGBA8
 >
 class Texture {
 public:
@@ -79,13 +79,24 @@ public:
     glTexParameteri(target, paramName, i);
   }
 
-  void image2d(const glm::ivec2 & size, 
-      void * data = 0,
+  void image2d(const glm::ivec2 & size, void * data,
       GLint level = 0,
       GLenum format = GL_RGB,
-      GLenum type = GL_UNSIGNED_BYTE,
-      GLenum target = TextureType) {
-    glTexImage2D(target, level, InternalFormat, size.x, size.y, 0, format, type, data);
+      GLenum type = GL_UNSIGNED_BYTE) {
+    image2d(TextureType, size, data, level, format, type);
+  }
+
+  void image2d(GLenum target, const glm::ivec2 & size, void * data,
+      GLint level = 0,
+      GLenum format = GL_RGB,
+      GLenum type = GL_UNSIGNED_BYTE) {
+    GL_CHECK_ERROR;
+    glTexImage2D(target, level, TextureFormat, size.x, size.y, 0, format, type, data);
+    GL_CHECK_ERROR;
+  }
+
+  void storage2d(const glm::ivec2 & size, GLint levels = 1) {
+    glTexStorage2D(TextureType, levels, TextureFormat, size.x, size.y);
   }
 
   void generateMipmap() {
@@ -95,13 +106,18 @@ public:
   operator GLuint() {
     return texture;
   }
+
+  typedef std::shared_ptr<Texture<TextureType, TextureFormat> > Ptr;
 };
 
 typedef Texture<GL_TEXTURE_2D> Texture2d;
+typedef Texture<GL_TEXTURE_2D, GL_DEPTH_COMPONENT16> Texture2dDepth;
 typedef Texture<GL_TEXTURE_2D_MULTISAMPLE> Texture2dMs;
 typedef Texture<GL_TEXTURE_3D> Texture3d;
 typedef Texture<GL_TEXTURE_CUBE_MAP> TextureCubeMap;
-typedef std::shared_ptr<Texture2d> Texture2dPtr;
-typedef Texture2dPtr TexturePtr;
-
+typedef typename Texture2d::Ptr Texture2dPtr;
+typedef typename Texture2dDepth::Ptr Texture2dDepthPtr;
+typedef typename TextureCubeMap::Ptr TextureCubeMapPtr;
+typedef typename Texture2dMs::Ptr Texture2dMsPtr;
+typedef typename Texture2d::Ptr TexturePtr;
 } // gl

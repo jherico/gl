@@ -29,6 +29,68 @@
 
 namespace gl {
 
+template<GLenum BufferType>
+class Buffer {
+  GLuint buffer;
+
+public:
+
+  Buffer() :
+      buffer(0) {
+    glGenBuffers(1, &buffer);
+    assert(buffer != 0);
+  }
+
+  Buffer(Buffer && other) :
+      buffer(0) {
+    std::swap(other.buffer, buffer);
+  }
+
+  template<typename T>
+  Buffer(const std::vector<T> & data) :
+      buffer(0) {
+    glGenBuffers(1, &buffer);
+
+    bind();
+    load(data.size() * sizeof(T), &data[0]);
+    unbind();
+  }
+
+  template<typename T, size_t SIZE>
+  Buffer(T (&array)[SIZE]) :
+      buffer(0) {
+    glGenBuffers(1, &buffer);
+    bind();
+    load(SIZE * sizeof(T), array);
+    unbind();
+  }
+
+//  template<typename T> Buffer(const std::vector<T> & data);0
+//  template<typename T, size_t SIZE> Buffer(const T (&array)[SIZE]);
+
+  virtual ~Buffer() {
+    glDeleteBuffers(1, &buffer);
+  }
+
+  void load(size_t size, const void * data, GLenum usage = GL_STATIC_DRAW) {
+    glBufferData(BufferType, size, data, usage);
+  }
+
+  void bind() const {
+    glBindBuffer(BufferType, buffer);
+  }
+
+  static void unbind() {
+    glBindBuffer(BufferType, 0);
+  }
+};
+
+typedef Buffer<GL_ELEMENT_ARRAY_BUFFER> IndexBuffer;
+typedef std::shared_ptr<IndexBuffer> IndexBufferPtr;
+
+typedef Buffer<GL_ARRAY_BUFFER> VertexBuffer;
+typedef std::shared_ptr<VertexBuffer> VertexBufferPtr;
+
 class BufferLoader {
 public:
   virtual ~BufferLoader() {
@@ -88,73 +150,26 @@ template<typename T, size_t SIZE> ArrayLoader<T, SIZE> makeArrayLoader(
   return ArrayLoader<T, SIZE>(array);
 }
 
-template<GLenum BufferType, GLenum UsageType = GL_STATIC_DRAW>
-class Buffer {
-  GLuint buffer;
 
-public:
 
-  Buffer() :
-      buffer(0) {
-    glGenBuffers(1, &buffer);
-    assert(buffer != 0);
-  }
+template <GLenum BufferType>
+Buffer<BufferType> & operator <<(Buffer<BufferType> & buffer, const BufferLoader & loader) {
+  buffer.bind();
+  buffer.load(loader.getSize(), loader.getData());
+  Buffer<BufferType>::unbind();
+  GL_CHECK_ERROR;
+  return buffer;
+}
 
-  Buffer(Buffer && other) :
-      buffer(0) {
-    std::swap(other.buffer, buffer);
-  }
+template <GLenum BufferType>
+Buffer<BufferType> & operator <<(Buffer<BufferType> & buffer, BufferLoader && loader) {
+  buffer.bind();
+  buffer.load(loader.getSize(), loader.getData());
+  Buffer<BufferType>::unbind();
+  GL_CHECK_ERROR;
+  return buffer;
+}
 
-  template<typename T>
-  Buffer::Buffer(std::vector<T> & data) :
-      buffer(0) {
-    glGenBuffers(1, &buffer);
-    *this << gl::VectorLoader < T >(data);
-  }
-
-  template<typename T, size_t SIZE>
-  Buffer(T (&array)[SIZE]) :
-      buffer(0) {
-    glGenBuffers(1, &buffer);
-    *this << gl::ArrayLoader<T, SIZE>(array);
-  }
-
-  template<typename T> Buffer(const std::vector<T> & data);
-  template<typename T, size_t SIZE> Buffer(const T (&array)[SIZE]);
-
-  virtual ~Buffer() {
-    glDeleteBuffers(1, &buffer);
-  }
-
-  void load(size_t size, const void * data, GLenum usage = UsageType, GLenum target =
-      BufferType) {
-    glBufferData(target, size, data, usage);
-  }
-
-  void bind(GLenum target = BufferType) const {
-    glBindBuffer(target, buffer);
-  }
-
-  static void unbind(GLenum target = BufferType) {
-    glBindBuffer(target, 0);
-  }
-
-  Buffer & operator <<(const BufferLoader & loader) {
-    load(loader.getSize(), loader.getData());
-    return *this;
-  }
-
-  Buffer & operator <<(BufferLoader && loader) {
-    load(loader.getSize(), loader.getData());
-    return *this;
-  }
-};
-
-typedef Buffer<GL_ELEMENT_ARRAY_BUFFER> IndexBuffer;
-typedef std::shared_ptr<IndexBuffer> IndexBufferPtr;
-
-typedef Buffer<GL_ARRAY_BUFFER> VertexBuffer;
-typedef std::shared_ptr<VertexBuffer> VertexBufferPtr;
 
 } // gl
 

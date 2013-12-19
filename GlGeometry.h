@@ -123,17 +123,20 @@ public:
     {
       indices->bind();
       vertices->bind();
+      GL_CHECK_ERROR;
       unsigned int stride = getStride(flags);
       GLfloat * offset = 0;
       glEnableVertexAttribArray(gl::Attribute::Position);
       glVertexAttribPointer(gl::Attribute::Position, 3, GL_FLOAT, GL_FALSE,
           stride, offset);
+      GL_CHECK_ERROR;
 
       if (flags & HAS_NORMAL) {
         offset += VERTEX_ATTRIBUTE_SIZE;
         glEnableVertexAttribArray(gl::Attribute::Normal);
         glVertexAttribPointer(gl::Attribute::Normal, 3, GL_FLOAT, GL_FALSE,
             stride, offset);
+        GL_CHECK_ERROR;
       }
 
       if (flags & HAS_COLOR) {
@@ -141,6 +144,7 @@ public:
         glEnableVertexAttribArray(gl::Attribute::Color);
         glVertexAttribPointer(gl::Attribute::Color, 3, GL_FLOAT, GL_FALSE,
             stride, offset);
+        GL_CHECK_ERROR;
       }
 
       if (flags & HAS_TEXTURE) {
@@ -148,11 +152,13 @@ public:
         glEnableVertexAttribArray(gl::Attribute::TexCoord0);
         glVertexAttribPointer(gl::Attribute::TexCoord0, 2, GL_FLOAT,
             GL_FALSE, stride, offset);
+        GL_CHECK_ERROR;
       }
     }
     VertexArray::unbind();
     IndexBuffer::unbind();
     VertexBuffer::unbind();
+    GL_CHECK_ERROR;
   }
 
 };

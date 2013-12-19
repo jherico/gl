@@ -28,20 +28,11 @@
 
 namespace gl {
 
-  template <
-    class TextureType = Texture2d,
-    class DepthType = Texture<GL_TEXTURE_2D, GL_DEPTH_COMPONENT16>
-  >
 struct FrameBuffer {
-  typedef std::shared_ptr<TextureType> TexturePtr;
-  typedef std::shared_ptr<DepthType> DepthPtr;
   GLuint frameBuffer;
-  TexturePtr texture;
-  DepthPtr depth;
-  glm::ivec2 size;
 
-  FrameBuffer(TexturePtr color = TexturePtr(), DepthPtr depth = DepthPtr())
-      : frameBuffer(0), texture(color), depth(depth) {
+  FrameBuffer() : frameBuffer(0) {
+    glGenFramebuffers(1, &frameBuffer);
   }
 
   virtual ~FrameBuffer() {
@@ -51,143 +42,131 @@ struct FrameBuffer {
     }
   }
 
-  void init(const glm::ivec2 & size) {
-    this->size = size;
-    glGenFramebuffers(1, &frameBuffer);
-    GL_CHECK_ERROR;
-
-    bind();
-    GL_CHECK_ERROR;
-
-    if (!texture) {
-      texture = TexturePtr(new TextureType());
-      texture->bind();
-      texture->parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      texture->parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      texture->parameter(GL_TEXTURE_WRAP_S, GL_CLAMP);
-      texture->parameter(GL_TEXTURE_WRAP_T, GL_CLAMP);
-      texture->image2d(size);
-      TextureType::unbind();
-    }
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *texture, 0);
-
-    GL_CHECK_ERROR;
-    GLenum bufs = GL_COLOR_ATTACHMENT0;
-    glDrawBuffers(1, &bufs);
-    GL_CHECK_ERROR;
-
-    if (!depth) {
-      depth = DepthPtr(new DepthType());
-      depth->bind();
-      depth->parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-      depth->parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-      depth->parameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      depth->parameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      depth->image2d(size);
-      DepthType::unbind();
-    }
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *depth, 0);
-
-    if (!checkStatus(GL_FRAMEBUFFER)) {
-      throw std::runtime_error("Bad framebuffer creation");
-    }
-
-    unbind();
+  void bind(GLenum target = GL_FRAMEBUFFER) {
+    glBindFramebuffer(target, frameBuffer);
   }
 
-  void bind() {
-    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+  static void unbind(GLenum target = GL_FRAMEBUFFER) {
+    glBindFramebuffer(target, 0);
   }
 
-  void bindColor() {
-    texture->bind(multisample ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D);
-  }
-
-  void unbindColor() {
-    Texture::unbind(multisample ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D);
-  }
-
-  static void unbind() {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  }
-
-  void activate() {
-//    glBindTexture(GL_TEXTURE_2D, 0);
-//    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-    viewport(size);
-  }
-  void deactivate() {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//    texture->bind();
-//    glGenerateMipmap(GL_TEXTURE_2D);
-//    glGenerateMipmap(GL_TEXTURE_2D);
-//    texture->unbind();
-  }
-
-  TexturePtr & getTexture() {
-    return texture;
-  }
-
-  TexturePtr detachTexture() {
-    auto result = texture;
-    texture = nullptr;
-    return result;
-  }
-
-  static bool checkStatus(GLenum target) {
+  static bool checkStatus(GLenum target = GL_FRAMEBUFFER) {
       GLuint status = glCheckFramebufferStatus(target);
       switch(status) {
       case GL_FRAMEBUFFER_COMPLETE:
-          //printf("framebuffer check ok\n"); fflush(stdout);
           return true;
           break;
 
       case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-          printf("framebuffer incomplete attachment\n"); fflush(stdout);
+          std::cerr << "framebuffer incomplete attachment" << std::endl;
           break;
 
       case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-          printf("framebuffer missing attachment\n"); fflush(stdout);
+          std::cerr << "framebuffer missing attachment" << std::endl;
           break;
 
       case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
-          printf("framebuffer incomplete dimensions\n"); fflush(stdout);
+          std::cerr << "framebuffer incomplete dimensions" << std::endl;
           break;
 
       case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
-          printf("framebuffer incomplete formats\n"); fflush(stdout);
+          std::cerr << "framebuffer incomplete formats" << std::endl;
           break;
 
       case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-          printf("framebuffer incomplete draw buffer\n"); fflush(stdout);
+          std::cerr << "framebuffer incomplete draw buffer" << std::endl;
           break;
 
       case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-          printf("framebuffer incomplete read buffer\n"); fflush(stdout);
+          std::cerr << "framebuffer incomplete read buffer" << std::endl;
           break;
 
       case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-          printf("framebuffer incomplete multisample\n"); fflush(stdout);
+          std::cerr << "framebuffer incomplete multisample" << std::endl;
           break;
 
       case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS :
-          printf("framebuffer incomplete layer targets\n"); fflush(stdout);
+          std::cerr << "framebuffer incomplete layer targets" << std::endl;
           break;
 
       case GL_FRAMEBUFFER_UNSUPPORTED:
-          printf("framebuffer unsupported internal format or image\n"); fflush(stdout);
+          std::cerr << "framebuffer unsupported internal format or image" << std::endl;
           break;
 
       default:
-          printf("other framebuffer error\n"); fflush(stdout);
+          std::cerr << "other framebuffer error" << std::endl;
           break;
       }
 
       return false;
   }
 
+  template <GLenum TextureType, GLenum TextureFormat>
+  void attach(int attachPoint, std::shared_ptr<Texture<TextureType, TextureFormat> > & texture) {
+    glFramebufferTexture2D(GL_FRAMEBUFFER, attachPoint, TextureType, *texture, 0);
+  }
 };
+
+typedef std::shared_ptr<FrameBuffer> FrameBufferPtr;
+
+
+struct FrameBufferWrapper {
+  FrameBufferPtr frameBuffer;
+  Texture2d::Ptr color;
+  Texture2dDepth::Ptr depth;
+  glm::ivec2 size;
+
+  void init(const glm::ivec2 & size) {
+    this->size = size;
+    GL_CHECK_ERROR;
+    if (!frameBuffer) {
+      frameBuffer = FrameBufferPtr(new FrameBuffer());
+    }
+    frameBuffer->bind();
+    GL_CHECK_ERROR;
+
+    if (!color) {
+      color = Texture2dPtr(new Texture2d());
+      color->bind();
+      color->parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      color->parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      color->parameter(GL_TEXTURE_WRAP_S, GL_CLAMP);
+      color->parameter(GL_TEXTURE_WRAP_T, GL_CLAMP);
+      color->storage2d(size);
+      Texture2d::unbind();
+    }
+    frameBuffer->attach(GL_COLOR_ATTACHMENT0, color);
+    GL_CHECK_ERROR;
+
+    if (!depth) {
+      depth = Texture2dDepth::Ptr(new Texture2dDepth());
+      depth->bind();
+      depth->storage2d(size);
+      Texture2dDepth::unbind();
+    }
+    frameBuffer->attach(GL_DEPTH_ATTACHMENT, depth);
+    GL_CHECK_ERROR;
+
+
+    if (!frameBuffer->checkStatus()) {
+      throw std::runtime_error("Bad framebuffer creation");
+    }
+    GL_CHECK_ERROR;
+    FrameBuffer::unbind();
+    GL_CHECK_ERROR;
+  }
+
+  void activate() {
+    frameBuffer->bind();
+    viewport(size);
+  }
+
+  static void deactivate() {
+    FrameBuffer::unbind();
+  }
+
+};
+
 
 } // gl
 
