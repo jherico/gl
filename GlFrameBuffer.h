@@ -109,10 +109,11 @@ struct FrameBuffer {
 
 typedef std::shared_ptr<FrameBuffer> FrameBufferPtr;
 
-
-struct FrameBufferWrapper {
+template <GLenum ColorFormat = GL_RGBA8>
+struct TFrameBufferWrapper {
+  typedef Texture<GL_TEXTURE_2D, ColorFormat> ColorTexture;
   FrameBufferPtr frameBuffer;
-  Texture2d::Ptr color;
+  typename ColorTexture::Ptr color;
   Texture2dDepth::Ptr depth;
   glm::ivec2 size;
 
@@ -126,7 +127,7 @@ struct FrameBufferWrapper {
     GL_CHECK_ERROR;
 
     if (!color) {
-      color = Texture2dPtr(new Texture2d());
+      color = ColorTexture::Ptr(new ColorTexture());
       color->bind();
       color->parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       color->parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -167,6 +168,7 @@ struct FrameBufferWrapper {
 
 };
 
+typedef TFrameBufferWrapper<> FrameBufferWrapper;
 
 } // gl
 

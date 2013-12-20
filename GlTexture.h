@@ -115,9 +115,9 @@ typedef Texture<GL_TEXTURE_2D, GL_DEPTH_COMPONENT16> Texture2dDepth;
 typedef Texture<GL_TEXTURE_2D_MULTISAMPLE> Texture2dMs;
 typedef Texture<GL_TEXTURE_3D> Texture3d;
 typedef Texture<GL_TEXTURE_CUBE_MAP> TextureCubeMap;
-typedef typename Texture2d::Ptr Texture2dPtr;
-typedef typename Texture2dDepth::Ptr Texture2dDepthPtr;
-typedef typename TextureCubeMap::Ptr TextureCubeMapPtr;
-typedef typename Texture2dMs::Ptr Texture2dMsPtr;
-typedef typename Texture2d::Ptr TexturePtr;
+typedef Texture2d::Ptr Texture2dPtr;
+typedef Texture2dDepth::Ptr Texture2dDepthPtr;
+typedef TextureCubeMap::Ptr TextureCubeMapPtr;
+typedef Texture2dMs::Ptr Texture2dMsPtr;
+typedef Texture2d::Ptr TexturePtr;
 } // gl

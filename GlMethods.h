@@ -18,6 +18,7 @@
  ************************************************************************************/
 
 #pragma once
+#include <vector>
 
 namespace gl {
 namespace Error {
