@@ -163,8 +163,11 @@ Buffer<BufferType> & operator <<(Buffer<BufferType> & buffer, const BufferLoader
 
 template <GLenum BufferType>
 Buffer<BufferType> & operator <<(Buffer<BufferType> & buffer, BufferLoader && loader) {
+    GL_CHECK_ERROR;
   buffer.bind();
+    GL_CHECK_ERROR;
   buffer.load(loader.getSize(), loader.getData());
+    GL_CHECK_ERROR;
   Buffer<BufferType>::unbind();
   GL_CHECK_ERROR;
   return buffer;

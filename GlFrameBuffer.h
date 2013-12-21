@@ -65,14 +65,6 @@ struct FrameBuffer {
           std::cerr << "framebuffer missing attachment" << std::endl;
           break;
 
-      case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
-          std::cerr << "framebuffer incomplete dimensions" << std::endl;
-          break;
-
-      case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
-          std::cerr << "framebuffer incomplete formats" << std::endl;
-          break;
-
       case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
           std::cerr << "framebuffer incomplete draw buffer" << std::endl;
           break;
@@ -131,8 +123,8 @@ struct TFrameBufferWrapper {
       color->bind();
       color->parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       color->parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      color->parameter(GL_TEXTURE_WRAP_S, GL_CLAMP);
-      color->parameter(GL_TEXTURE_WRAP_T, GL_CLAMP);
+      color->parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+      color->parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
       color->storage2d(size);
       Texture2d::unbind();
     }
