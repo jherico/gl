@@ -127,7 +127,7 @@ struct TFrameBufferWrapper {
     GL_CHECK_ERROR;
 
     if (!color) {
-      color = ColorTexture::Ptr(new ColorTexture());
+      color = typename ColorTexture::Ptr(new ColorTexture());
       color->bind();
       color->parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       color->parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
