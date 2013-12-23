@@ -65,9 +65,6 @@ public:
     unbind();
   }
 
-//  template<typename T> Buffer(const std::vector<T> & data);0
-//  template<typename T, size_t SIZE> Buffer(const T (&array)[SIZE]);
-
   virtual ~Buffer() {
     glDeleteBuffers(1, &buffer);
   }
