@@ -34,6 +34,11 @@ namespace gl {
 
 class MatrixStack : public std::stack<glm::mat4> {
   const std::string uniformName;
+  private:
+  MatrixStack(const MatrixStack & other) {
+    // Do not allow copies of matrix stacks, only references
+  }
+
   public:
   MatrixStack(const std::string & uniformName)
       : uniformName(uniformName) {
