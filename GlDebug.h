@@ -50,10 +50,12 @@ public:
   }
 
   static inline void check() {
+#ifdef GL_DEBUG
     GLenum errorCode = glGetError();
     if (errorCode != 0) {
       throw error(errorCode);
     }
+#endif
   }
 };
 
@@ -62,13 +64,6 @@ public:
   GLuint shader;
   shader_error(GLuint shader, const std::string & log)
       : shader(shader), runtime_error("OpenGL Shader Error: " + log) {
-  }
-
-  static inline void check() {
-    GLenum errorCode = glGetError();
-    if (errorCode != 0) {
-      throw error(errorCode);
-    }
   }
 };
 
