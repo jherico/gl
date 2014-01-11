@@ -52,7 +52,7 @@ public:
     glGenBuffers(1, &buffer);
 
     bind();
-    load(data.size() * sizeof(T), &data[0]);
+    load(data);
     unbind();
   }
 
@@ -67,6 +67,11 @@ public:
 
   virtual ~Buffer() {
     glDeleteBuffers(1, &buffer);
+  }
+
+  template<typename T>
+  void load(const std::vector<T> & data, GLenum usage = GL_STATIC_DRAW) {
+    load(data.size() * sizeof(T), &data[0], usage);
   }
 
   void load(size_t size, const void * data, GLenum usage = GL_STATIC_DRAW) {
