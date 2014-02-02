@@ -79,14 +79,14 @@ public:
     glTexParameteri(target, paramName, i);
   }
 
-  void image2d(const glm::ivec2 & size, void * data,
+  void image2d(const glm::uvec2 & size, void * data,
       GLint level = 0,
       GLenum format = GL_RGB,
       GLenum type = GL_UNSIGNED_BYTE) {
     image2d(TextureType, size, data, level, format, type);
   }
 
-  void image2d(GLenum target, const glm::ivec2 & size, void * data,
+  void image2d(GLenum target, const glm::uvec2 & size, void * data,
       GLint level = 0,
       GLenum format = GL_RGB,
       GLenum type = GL_UNSIGNED_BYTE) {
@@ -95,7 +95,7 @@ public:
     GL_CHECK_ERROR;
   }
 
-  void storage2d(const glm::ivec2 & size, GLint levels = 1) {
+  void storage2d(const glm::uvec2 & size, GLint levels = 1) {
     glTexStorage2D(TextureType, levels, TextureFormat, size.x, size.y);
   }
 

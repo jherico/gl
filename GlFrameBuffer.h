@@ -107,9 +107,9 @@ struct TFrameBufferWrapper {
   FrameBufferPtr frameBuffer;
   typename ColorTexture::Ptr color;
   Texture2dDepth::Ptr depth;
-  glm::ivec2 size;
+  glm::uvec2 size;
 
-  void init(const glm::ivec2 & size) {
+  void init(const glm::uvec2 & size) {
     this->size = size;
     GL_CHECK_ERROR;
     if (!frameBuffer) {
