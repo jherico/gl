@@ -90,7 +90,7 @@ inline void clearColor(const glm::vec3 & c) {
   glClearColor(c.r, c.g, c.b, 1.0);
 }
 
-inline void scissor(const glm::ivec2 & v, const glm::ivec2 & size) {
+inline void scissor(const glm::ivec2 & v, const glm::uvec2 & size) {
   glScissor(v.x, v.y, size.x, size.y);
 }
 
