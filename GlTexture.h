@@ -99,6 +99,10 @@ public:
     glTexStorage2D(TextureType, levels, TextureFormat, size.x, size.y);
   }
 
+  void storage2dMultisample(const glm::uvec2 & size, GLsizei samples = 4, GLboolean fixedSampleLocations = GL_TRUE) {
+    glTexStorage2DMultisample(TextureType, samples, TextureFormat, size.x, size.y, fixedSampleLocations);
+  }
+
   void generateMipmap() {
     glGenerateMipmap(TextureType);
   }

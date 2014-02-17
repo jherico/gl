@@ -101,15 +101,67 @@ struct FrameBuffer {
 
 typedef std::shared_ptr<FrameBuffer> FrameBufferPtr;
 
-template <GLenum ColorFormat = GL_RGBA8>
+template <
+  GLenum TextureType = GL_TEXTURE_2D,
+  GLenum ColorFormat = GL_RGBA8,
+  GLenum DepthFormat = GL_DEPTH_COMPONENT16
+>
 struct TFrameBufferWrapper {
-  typedef Texture<GL_TEXTURE_2D, ColorFormat> ColorTexture;
+  typedef Texture<TextureType, ColorFormat> ColorTexture;
+  typedef Texture<TextureType, DepthFormat> DepthTexture;
   FrameBufferPtr frameBuffer;
   typename ColorTexture::Ptr color;
-  Texture2dDepth::Ptr depth;
+  typename DepthTexture::Ptr depth;
   glm::uvec2 size;
 
   void init(const glm::uvec2 & size) {
+    this->size = size;
+    GL_CHECK_ERROR;
+    if (!frameBuffer) {
+      frameBuffer = FrameBufferPtr(new FrameBuffer());
+    }
+    frameBuffer->bind();
+    GL_CHECK_ERROR;
+
+    if (!color) {
+      color = typename ColorTexture::Ptr(new ColorTexture());
+      color->bind();
+      color->parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      color->parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      color->parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+      color->parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+      if (TextureType == GL_TEXTURE_2D) {
+        color->storage2d(size);
+      } else if (TextureType == GL_TEXTURE_2D_MULTISAMPLE) {
+        color->storage2dMultisample(size);
+      }
+      ColorTexture::unbind();
+    }
+    frameBuffer->attach(GL_COLOR_ATTACHMENT0, color);
+    GL_CHECK_ERROR;
+
+    if (!depth) {
+      depth = DepthTexture::Ptr(new DepthTexture());
+      depth->bind();
+      if (TextureType == GL_TEXTURE_2D) {
+        depth->storage2d(size);
+      } else if (TextureType == GL_TEXTURE_2D_MULTISAMPLE) {
+        depth->storage2dMultisample(size);
+      }
+      DepthTexture::unbind();
+    }
+    frameBuffer->attach(GL_DEPTH_ATTACHMENT, depth);
+    GL_CHECK_ERROR;
+
+    if (!frameBuffer->checkStatus()) {
+      throw std::runtime_error("Bad framebuffer creation");
+    }
+    GL_CHECK_ERROR;
+    FrameBuffer::unbind();
+    GL_CHECK_ERROR;
+  }
+
+  void initMultisample(const glm::uvec2 & size, uint8_t samples) {
     this->size = size;
     GL_CHECK_ERROR;
     if (!frameBuffer) {
@@ -161,6 +213,7 @@ struct TFrameBufferWrapper {
 };
 
 typedef TFrameBufferWrapper<> FrameBufferWrapper;
+typedef TFrameBufferWrapper<GL_TEXTURE_2D_MULTISAMPLE> MultisampleFrameBufferWrapper;
 
 } // gl
 
