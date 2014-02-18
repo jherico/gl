@@ -109,9 +109,12 @@ template <
 struct TFrameBufferWrapper {
   typedef Texture<TextureType, ColorFormat> ColorTexture;
   typedef Texture<TextureType, DepthFormat> DepthTexture;
+  typedef typename ColorTexture::Ptr ColorTexturePtr;
+  typedef typename DepthTexture::Ptr DepthTexturePtr;
+
   FrameBufferPtr frameBuffer;
-  typename ColorTexture::Ptr color;
-  typename DepthTexture::Ptr depth;
+  ColorTexturePtr color;
+  DepthTexturePtr depth;
   glm::uvec2 size;
 
   void init(const glm::uvec2 & size) {
@@ -124,7 +127,7 @@ struct TFrameBufferWrapper {
     GL_CHECK_ERROR;
 
     if (!color) {
-      color = typename ColorTexture::Ptr(new ColorTexture());
+      color = ColorTexturePtr(new ColorTexture());
       color->bind();
       color->parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       color->parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -141,7 +144,7 @@ struct TFrameBufferWrapper {
     GL_CHECK_ERROR;
 
     if (!depth) {
-      depth = DepthTexture::Ptr(new DepthTexture());
+      depth = DepthTexturePtr(new DepthTexture());
       depth->bind();
       if (TextureType == GL_TEXTURE_2D) {
         depth->storage2d(size);
