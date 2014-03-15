@@ -35,14 +35,15 @@ namespace gl {
 class MatrixStack : public std::stack<glm::mat4> {
   const std::string uniformName;
   private:
-  MatrixStack(const MatrixStack & other) {
-    // Do not allow copies of matrix stacks, only references
-  }
 
   public:
   MatrixStack(const std::string & uniformName)
       : uniformName(uniformName) {
     push(glm::mat4());
+  }
+
+  explicit MatrixStack(const MatrixStack & other) : uniformName(other.uniformName) {
+    *((std::stack<glm::mat4>*)this) = *((std::stack<glm::mat4>*)&other);
   }
 
   MatrixStack & apply(Program & program) {
@@ -147,6 +148,22 @@ public:
   static MatrixStack & modelview() {
     static MatrixStack modelview("ModelView");
     return modelview;
+  }
+
+  template <typename Function>
+  static void with_push(gl::MatrixStack & stack, Function f) {
+    stack.push();
+    f();
+    stack.pop();
+  }
+
+  template <typename Function>
+  static void with_push(gl::MatrixStack & stack1, gl::MatrixStack & stack2, Function f) {
+    stack1.push();
+    stack2.push();
+    f();
+    stack2.pop();
+    stack1.pop();
   }
 
   static Lights & lights() {

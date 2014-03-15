@@ -118,6 +118,14 @@ public:
     buildVertexArray();
   }
 
+  void updateVertices(const std::vector<glm::vec3> & in_vertices, GLenum usage = GL_DYNAMIC_DRAW) {
+    std::vector<glm::vec4> v4(in_vertices.size());
+    std::for_each(in_vertices.begin(), in_vertices.end(), [&](const glm::vec3 & element){
+      v4.push_back(glm::vec4(element, 1));
+    });
+    updateVertices(v4, usage);
+  }
+
   void updateVertices(const std::vector<glm::vec4> & in_vertices, GLenum usage = GL_DYNAMIC_DRAW) {
     vertices->bind();
     vertices->load(in_vertices);

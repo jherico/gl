@@ -85,6 +85,14 @@ public:
   static void unbind() {
     glBindBuffer(BufferType, 0);
   }
+
+  void loadSub(GLintptr offset, GLsizeiptr size, const void *data) {
+    glBufferSubData(BufferType, offset, size, data);
+  }
+
+  static void storage(GLsizeiptr size, GLbitfield flags) {
+    glBufferStorage(BufferType, size, nullptr, flags);
+  }
 };
 
 typedef Buffer<GL_ELEMENT_ARRAY_BUFFER> IndexBuffer;
