@@ -152,18 +152,23 @@ public:
 
   template <typename Function>
   static void with_push(gl::MatrixStack & stack, Function f) {
+    size_t startingDepth = stack.size();
     stack.push();
     f();
     stack.pop();
+    assert(startingDepth = stack.size());
   }
 
   template <typename Function>
   static void with_push(gl::MatrixStack & stack1, gl::MatrixStack & stack2, Function f) {
-    stack1.push();
-    stack2.push();
-    f();
-    stack2.pop();
-    stack1.pop();
+    with_push(stack1, [&]{
+      with_push(stack2, f);
+    });
+  }
+
+  template <typename Function>
+  static void with_push(Function f) {
+    with_push(projection(), modelview(), f);
   }
 
   static Lights & lights() {

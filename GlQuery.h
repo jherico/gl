@@ -60,7 +60,7 @@ public:
     return result == GL_TRUE;
   }
 
-  GLint getReult() {
+  GLint getResult() {
     GLint result = -1;
     glGetQueryObjectiv(query, GL_QUERY_RESULT, &result);
     return result;

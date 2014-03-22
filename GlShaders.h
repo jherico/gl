@@ -269,6 +269,13 @@ public:
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(a));
   }
 
+  void setUniform(const std::string & name, const glm::mat3 & a) {
+    configuredUniforms.insert(name);
+    GLint location = getUniformLocation(name);
+    glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(a));
+  }
+
+
   inline void setUniform1f(const std::string & name, GLfloat a) {
     setUniform(name, a);
   }
