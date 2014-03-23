@@ -136,6 +136,15 @@ class MatrixStack : public std::stack<glm::mat4> {
     return *this;
   }
 
+  template <typename Function>
+  void with_push(Function f) {
+    size_t startingDepth = size();
+    push();
+    f();
+    pop();
+    assert(startingDepth = size());
+  }
+
 };
 
 class Stacks {
@@ -152,17 +161,13 @@ public:
 
   template <typename Function>
   static void with_push(gl::MatrixStack & stack, Function f) {
-    size_t startingDepth = stack.size();
-    stack.push();
-    f();
-    stack.pop();
-    assert(startingDepth = stack.size());
+    stack.with_push(f);
   }
 
   template <typename Function>
   static void with_push(gl::MatrixStack & stack1, gl::MatrixStack & stack2, Function f) {
-    with_push(stack1, [&]{
-      with_push(stack2, f);
+    stack1.with_push([&]{
+      stack2.with_push(f);
     });
   }
 
