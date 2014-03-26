@@ -37,6 +37,11 @@ class MatrixStack : public std::stack<glm::mat4> {
   private:
 
   public:
+
+  MatrixStack() {
+    push(glm::mat4());
+  }
+
   MatrixStack(const std::string & uniformName)
       : uniformName(uniformName) {
     push(glm::mat4());
