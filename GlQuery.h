@@ -65,9 +65,17 @@ public:
     glGetQueryObjectiv(query, GL_QUERY_RESULT, &result);
     return result;
   }
+
+  typedef std::shared_ptr<gl::Query<QueryType> > Ptr;
 };
 
 typedef Query<GL_TIME_ELAPSED> TimeQuery;
-typedef std::shared_ptr<gl::TimeQuery> TimeQueryPtr;
+typedef TimeQuery::Ptr TimeQueryPtr;
+
+typedef Query<GL_SAMPLES_PASSED> SampleQuery;
+typedef SampleQuery::Ptr SampleQueryPtr;
+
+typedef Query<GL_PRIMITIVES_GENERATED> PrimitiveQuery;
+typedef PrimitiveQuery::Ptr PrimitiveQueryPtr;
 
 }
