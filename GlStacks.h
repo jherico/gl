@@ -142,12 +142,17 @@ class MatrixStack : public std::stack<glm::mat4> {
   }
 
   template <typename Function>
-  void with_push(Function f) {
+  void withPush(Function f) {
     size_t startingDepth = size();
     push();
     f();
     pop();
     assert(startingDepth = size());
+  }
+
+  template <typename Function>
+  void with_push(Function f) {
+    withPush(f);
   }
 
 };
@@ -165,20 +170,35 @@ public:
   }
 
   template <typename Function>
-  static void with_push(gl::MatrixStack & stack, Function f) {
+  static void withPush(gl::MatrixStack & stack, Function f) {
     stack.with_push(f);
   }
 
   template <typename Function>
-  static void with_push(gl::MatrixStack & stack1, gl::MatrixStack & stack2, Function f) {
+  static void withPush(gl::MatrixStack & stack1, gl::MatrixStack & stack2, Function f) {
     stack1.with_push([&]{
       stack2.with_push(f);
     });
   }
 
   template <typename Function>
-  static void with_push(Function f) {
+  static void withPush(Function f) {
     with_push(projection(), modelview(), f);
+  }
+
+  template <typename Function>
+  static void with_push(gl::MatrixStack & stack, Function f) {
+    withPush(stack, f);
+  }
+
+  template <typename Function>
+  static void with_push(gl::MatrixStack & stack1, gl::MatrixStack & stack2, Function f) {
+    withPush(stack1, stack2, f);
+  }
+
+  template <typename Function>
+  static void with_push(Function f) {
+    withPush(f);
   }
 
   static Lights & lights() {
