@@ -42,7 +42,7 @@ struct FrameBuffer {
     }
   }
 
-  void bind(GLenum target = GL_FRAMEBUFFER) {
+  void bind(GLenum target = GL_FRAMEBUFFER) const {
     glBindFramebuffer(target, frameBuffer);
   }
 
@@ -204,7 +204,7 @@ struct TFrameBufferWrapper {
     GL_CHECK_ERROR;
   }
 
-  void activate() {
+  void activate() const {
     frameBuffer->bind();
     viewport(size);
   }
@@ -213,6 +213,12 @@ struct TFrameBufferWrapper {
     FrameBuffer::unbind();
   }
 
+  template <typename Function>
+  void withFramebufferActive(Function f) {
+    activate();
+    f();
+    deactivate();
+  }
 };
 
 typedef TFrameBufferWrapper<> FrameBufferWrapper;
