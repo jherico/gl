@@ -129,11 +129,11 @@ struct TFrameBufferWrapper {
     if (!color) {
       color = ColorTexturePtr(new ColorTexture());
       color->bind();
-      color->parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      color->parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      color->parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-      color->parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
       if (TextureType == GL_TEXTURE_2D) {
+        color->parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        color->parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        color->parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        color->parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         color->storage2d(size);
       } else if (TextureType == GL_TEXTURE_2D_MULTISAMPLE) {
         color->storage2dMultisample(size);
