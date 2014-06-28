@@ -106,6 +106,11 @@ class MatrixStack : public std::stack<glm::mat4> {
     return postMultiply(glm::translate(glm::mat4(), translation));
   }
 
+  MatrixStack & preTranslate(const glm::vec3 & translation) {
+    return preMultiply(glm::translate(glm::mat4(), translation));
+  }
+
+
   MatrixStack & scale(float factor) {
     return scale(glm::vec3(factor));
   }

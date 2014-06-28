@@ -134,6 +134,7 @@ enum {
   Normal = 2,
   Color = 3,
   TexCoord1 = 4,
+  InstanceTransform = 5,
 };
 }
 

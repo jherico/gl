@@ -82,6 +82,11 @@ public:
         GL_UNSIGNED_INT, (void*) 0);
   }
 
+  void drawInstanced(int count) {
+    glDrawElementsInstanced(elementType, elements * verticesPerElement,
+        GL_UNSIGNED_INT, (void*) 0, count);
+  }
+
   Geometry(
       const std::vector<glm::vec4> & in_vertices,
       const std::vector<GLuint> & in_indices,
@@ -175,6 +180,19 @@ public:
     IndexBuffer::unbind();
     VertexBuffer::unbind();
     GL_CHECK_ERROR;
+  }
+
+  void addInstanceVertexArray() {
+    vertexArray->bind();
+    for (int i = 0; i < 4; ++i) {
+      int pos = gl::Attribute::InstanceTransform + i;
+      int stride = sizeof(GLfloat) * 4 * 4;
+      int offset = sizeof(GLfloat) * 4 * i;
+      glEnableVertexAttribArray(pos);
+      glVertexAttribPointer(pos, 4, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+      glVertexAttribDivisor(pos, 1);
+    }
+    VertexArray::unbind();
   }
 
 };
