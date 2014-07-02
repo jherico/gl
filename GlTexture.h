@@ -115,7 +115,7 @@ public:
 };
 
 typedef Texture<GL_TEXTURE_2D> Texture2d;
-typedef Texture<GL_TEXTURE_2D, GL_DEPTH_COMPONENT16> Texture2dDepth;
+typedef Texture<GL_TEXTURE_2D, GL_DEPTH_COMPONENT32> Texture2dDepth;
 typedef Texture<GL_TEXTURE_2D_MULTISAMPLE> Texture2dMs;
 typedef Texture<GL_TEXTURE_3D> Texture3d;
 typedef Texture<GL_TEXTURE_CUBE_MAP> TextureCubeMap;

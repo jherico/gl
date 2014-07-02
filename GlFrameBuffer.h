@@ -104,7 +104,7 @@ typedef std::shared_ptr<FrameBuffer> FrameBufferPtr;
 template <
   GLenum TextureType = GL_TEXTURE_2D,
   GLenum ColorFormat = GL_RGBA8,
-  GLenum DepthFormat = GL_DEPTH_COMPONENT16
+  GLenum DepthFormat = GL_DEPTH_COMPONENT32
 >
 struct TFrameBufferWrapper {
   typedef Texture<TextureType, ColorFormat> ColorTexture;
