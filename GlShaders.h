@@ -147,7 +147,7 @@ class Program {
   GLuint program;
   Map uniforms;
   Map attributes;
-  Set configuredUniforms;
+
   public:
   GLint getUniformLocation(const std::string & name) const {
     return uniforms.count(name) ? uniforms.at(name).location : -1;
@@ -222,60 +222,46 @@ public:
     glDeleteProgram(program);
   }
 
-  void setUniform(const std::string & name, GLfloat a) {
-    configuredUniforms.insert(name);
-    GLint location = getUniformLocation(name);
+  void setUniform(GLint location, GLfloat a) {
     glUniform1f(location, a);
   }
 
-  void setUniform(const std::string & name, GLint a) {
-    configuredUniforms.insert(name);
-    GLint location = getUniformLocation(name);
+  void setUniform(GLint location, GLint a) {
     glUniform1i(location, a);
   }
 
-  void setUniform(const std::string & name, bool a) {
-    configuredUniforms.insert(name);
-    GLint location = getUniformLocation(name);
+  void setUniform(GLint location, bool a) {
     glUniform1i(location, a ? 1 : 0);
   }
 
-  void setUniform(const std::string & name, const glm::vec2 & a) {
-    configuredUniforms.insert(name);
-    GLint location = getUniformLocation(name);
+  void setUniform(GLint location, const glm::vec2 & a) {
     glUniform2f(location, a.x, a.y);
   }
 
-  void setUniform(const std::string & name, const glm::vec3 & a) {
-    configuredUniforms.insert(name);
-    GLint location = getUniformLocation(name);
+  void setUniform(GLint location, const glm::vec3 & a) {
     glUniform3f(location, a.x, a.y, a.z);
   }
 
-  void setUniform(const std::string & name, const glm::vec4 & a) {
-    configuredUniforms.insert(name);
-    GLint location = getUniformLocation(name);
+  void setUniform(GLint location, const glm::vec4 & a) {
     glUniform4f(location, a.x, a.y, a.z, a.w);
   }
 
-  void setUniform(const std::string & name, const std::vector<glm::vec4> & a) {
-    configuredUniforms.insert(name);
-    GLint location = getUniformLocation(name);
+  void setUniform(GLint location, const std::vector<glm::vec4> & a) {
     glUniform4fv(location, (GLsizei) a.size(), &(a[0][0]));
   }
 
-  void setUniform(const std::string & name, const glm::mat4 & a) {
-    configuredUniforms.insert(name);
-    GLint location = getUniformLocation(name);
+  void setUniform(GLint location, const glm::mat4 & a) {
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(a));
   }
 
-  void setUniform(const std::string & name, const glm::mat3 & a) {
-    configuredUniforms.insert(name);
-    GLint location = getUniformLocation(name);
+  void setUniform(GLint location, const glm::mat3 & a) {
     glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(a));
   }
 
+  template <class T>
+  void setUniform(const std::string & name, const T & value) {
+    setUniform(getUniformLocation(name), value);
+  }
 
   inline void setUniform1f(const std::string & name, GLfloat a) {
     setUniform(name, a);
@@ -303,24 +289,6 @@ public:
 
   inline void setUniform4x4f(const std::string & name, const glm::mat4 & a) {
     setUniform(name, a);
-  }
-
-  void checkConfigured() {
-    Set existingUniforms;
-    // Option #2
-    std::for_each(std::begin(uniforms), std::end(uniforms),
-        [&] (Map::const_reference element)
-        {
-          existingUniforms.insert(element.first);
-        });
-
-    std::for_each(std::begin(configuredUniforms),
-        std::end(configuredUniforms), [&] (Set::const_reference element)
-        {
-          existingUniforms.erase(element);
-        });
-
-//    assert(existingUniforms.size() == 0);
   }
 
   void use() {
