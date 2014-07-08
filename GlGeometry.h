@@ -187,7 +187,7 @@ public:
     for (int i = 0; i < 4; ++i) {
       int pos = gl::Attribute::InstanceTransform + i;
       int stride = sizeof(GLfloat) * 4 * 4;
-      int offset = sizeof(GLfloat) * 4 * i;
+      size_t offset = sizeof(GLfloat) * 4 * i;
       glEnableVertexAttribArray(pos);
       glVertexAttribPointer(pos, 4, GL_FLOAT, GL_FALSE, stride, (void*)offset);
       glVertexAttribDivisor(pos, 1);
