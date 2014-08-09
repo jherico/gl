@@ -150,7 +150,7 @@ class Program {
 
   public:
   GLint getUniformLocation(const std::string & name) const {
-    return uniforms.count(name) ? uniforms.at(name).location : -1;
+    return glGetUniformLocation(program, name.c_str());// uniforms.count(name) ? uniforms.at(name).location : -1;
   }
 
   GLint getAttributeLocation(const std::string & name) const {
